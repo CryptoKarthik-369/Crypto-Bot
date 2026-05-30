@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<title>SUI Setup Monitor</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a0f;--bg2:#13131a;--bg3:#1a1a24;--bg4:#22222f;
+  --border:#2a2a3a;--border2:#3a3a50;
+  --text:#e8e8f0;--text2:#8888a8;--text3:#5555708;
+  --green:#1D9E75;--green-bg:#0d2a1f;--green-text:#4ddb9f;
+  --red:#D85A30;--red-bg:#2a1008;--red-text:#ff7a4d;
+  --amber:#EF9F27;--amber-bg:#2a1f08;--amber-text:#ffc55a;
+  --purple:#7F77DD;--purple-bg:#1a1830;--purple-text:#a8a2ff;
+  --radius:10px;--radius-sm:7px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;font-size:14px;min-height:100vh;padding-bottom:2rem}
+.app{max-width:480px;margin:0 auto;padding:0 16px}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:16px 0 12px;border-bottom:1px solid var(--border)}
+.topbar-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(29,158,117,.4)}50%{opacity:.6;box-shadow:0 0 0 6px rgba(29,158,117,0)}}
+.topbar-title{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.topbar-ver{font-size:11px;color:var(--text2);background:var(--bg3);padding:2px 7px;border-radius:20px;border:1px solid var(--border)}
+.session-badge{margin-left:auto;font-size:11px;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;font-weight:500}
+.sess-on{background:var(--green-bg);color:var(--green-text);border:1px solid rgba(29,158,117,.3)}
+.sess-off{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+
+.section{margin-top:20px}
+.sec-title{font-size:11px;font-weight:600;color:var(--text2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;color:var(--text2);font-weight:500}
+.field input,.field select{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;padding:9px 11px;outline:none;width:100%;appearance:none;-webkit-appearance:none}
+.field input:focus,.field select:focus{border-color:var(--border2)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238888a8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+
+.align-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-top:10px;display:flex;align-items:center;gap:12px}
+.align-icon{font-size:20px;width:32px;text-align:center}
+.align-body{flex:1}
+.align-title{font-size:13px;font-weight:600}
+.align-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px}
+.badge-green{background:var(--green-bg);color:var(--green-text)}
+.badge-red{background:var(--red-bg);color:var(--red-text)}
+.badge-amber{background:var(--amber-bg);color:var(--amber-text)}
+.badge-gray{background:var(--bg3);color:var(--text2)}
+
+.choch-info{background:var(--purple-bg);border:1px solid rgba(127,119,221,.2);border-radius:var(--radius);padding:12px 14px;margin-top:10px}
+.choch-info-title{font-size:12px;font-weight:600;color:var(--purple-text);margin-bottom:6px}
+.choch-info p{font-size:12px;color:var(--text2);line-height:1.6}
+.choch-info b{color:var(--text);font-weight:500}
+
+.scan-btn{width:100%;margin-top:20px;padding:14px;background:var(--green);color:#fff;font-size:15px;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:-.1px;transition:opacity .15s,transform .1s}
+.scan-btn:active{transform:scale(.98);opacity:.9}
+.scan-btn:disabled{opacity:.4;cursor:not-allowed}
+
+.score-bar{margin-top:20px}
+.score-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.score-label{font-size:12px;color:var(--text2)}
+.score-val{font-size:22px;font-weight:700}
+.score-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.score-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1),background .5s}
+
+.checks{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.check{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;align-items:flex-start;gap:12px;transition:border-color .3s}
+.check.pass{border-color:rgba(29,158,117,.4)}
+.check.fail{border-color:rgba(216,90,48,.3)}
+.check.warn{border-color:rgba(239,159,39,.3)}
+.check-num{width:22px;height:22px;border-radius:50%;background:var(--bg3);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--text2);margin-top:1px}
+.check.pass .check-num{background:var(--green-bg);color:var(--green-text)}
+.check.fail .check-num{background:var(--red-bg);color:var(--red-text)}
+.check.warn .check-num{background:var(--amber-bg);color:var(--amber-text)}
+.check-body{flex:1}
+.check-label{font-size:13px;font-weight:600}
+.check-desc{font-size:12px;color:var(--text2);margin-top:3px}
+.check-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;flex-shrink:0;margin-top:2px}
+
+.levels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.level-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.level-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:5px}
+.level-val{font-size:16px;font-weight:700;font-family:'SF Mono',monospace;letter-spacing:-.3px}
+.level-sub{font-size:11px;color:var(--text2);margin-top:3px}
+.lv-entry{color:var(--purple-text)}
+.lv-sl{color:var(--red-text)}
+.lv-tp{color:var(--green-text)}
+.lv-rr{color:var(--amber-text)}
+
+.signal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-top:16px;text-align:center}
+.signal-label{font-size:11px;color:var(--text2);font-weight:500;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.signal-val{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.sig-long{color:var(--green-text)}
+.sig-short{color:var(--red-text)}
+.sig-neutral{color:var(--text2)}
+
+.ai-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-top:16px;font-size:13px;line-height:1.7;color:var(--text);min-height:70px}
+.ai-box.loading{color:var(--text2);font-style:italic}
+.ai-label{font-size:11px;font-weight:600;color:var(--purple-text);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px}
+
+.quick-btns{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+.quick-btn{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:border-color .15s,background .15s;text-align:left;width:100%}
+.quick-btn:hover,.quick-btn:active{background:var(--bg3);border-color:var(--border2)}
+.quick-btn-icon{font-size:16px;flex-shrink:0}
+
+.footer{margin-top:32px;text-align:center;font-size:11px;color:var(--text2);padding-bottom:16px}
+
+.dot-anim{display:inline-flex;gap:4px;align-items:center}
+.dot-anim span{width:4px;height:4px;border-radius:50%;background:var(--text2);animation:bounce .8s infinite}
+.dot-anim span:nth-child(2){animation-delay:.15s}
+.dot-anim span:nth-child(3){animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-dot"></div>
+    <div class="topbar-title">SUI Monitor</div>
+    <div class="topbar-ver">v3</div>
+    <div class="session-badge sess-off" id="sessbadge">⏰ Checking...</div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">Daily (1D)</div>
+    <div class="grid2">
+      <div class="field">
+        <label>1D direction</label>
+        <select id="d1">
+          <option value="bullish">📈 Bullish</option>
+          <option value="bearish" selected>📉 Bearish</option>
+          <option value="ranging">↔️ Ranging</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Current price</label>
+        <input type="number" id="price" value="0.9242" step="0.0001"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">1H Timeframe</div>
+    <div class="grid2">
+      <div class="field">
+        <label>1H direction</label>
+        <select id="h1">
+          <option value="bullish">📈 Bullish</option>
+          <option value="bearish" selected>📉 Bearish</option>
+          <option value="ranging">↔️ Ranging</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>1H key level</label>
+        <input type="number" id="h1lvl" value="0.9265" step="0.0001"/>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="field">
+        <label>FVG top</label>
+        <input type="number" id="fvgt" value="0.9275" step="0.0001"/>
+      </div>
+      <div class="field">
+        <label>FVG bottom</label>
+        <input type="number" id="fvgb" value="0.9255" step="0.0001"/>
+      </div>
+    </div>
+
+    <div class="align-card" id="alignCard">
+      <div class="align-icon">🔗</div>
+      <div class="align-body">
+        <div class="align-title">1D + 1H alignment</div>
+        <div class="align-sub" id="alignSub">Set both directions above</div>
+      </div>
+      <span class="badge badge-gray" id="alignBadge">Pending</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">Liquidity Levels</div>
+    <div class="grid2">
+      <div class="field">
+        <label>SSL — sell side</label>
+        <input type="number" id="ssl" value="0.9210" step="0.0001"/>
+      </div>
+      <div class="field">
+        <label>BSL — buy side</label>
+        <input type="number" id="bsl" value="0.9280" step="0.0001"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-title">5M Entry — CHoCH Confirmation</div>
+    <div class="choch-info">
+      <div class="choch-info-title">What is CHoCH?</div>
+      <p>
+        <b>Bearish:</b> Price taps 1H resistance → 5M breaks previous swing low<br>
+        <b>Bullish:</b> Price taps 1H support → 5M breaks previous swing high<br>
+        Enter on the <b>5M FVG retest</b> after CHoCH forms. Not on the CHoCH candle itself.
+      </p>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="field">
+        <label>Price touched 1H level?</label>
+        <select id="touched">
+          <option value="yes">✅ Yes — touched</option>
+          <option value="no" selected>⏳ No — not yet</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>5M CHoCH status</label>
+        <select id="choch">
+          <option value="confirmed">✅ Confirmed</option>
+          <option value="forming">⚡ Forming</option>
+          <option value="no" selected>⏳ Not yet</option>
+          <option value="failed">❌ Failed</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid2" style="margin-top:10px">
+      <div class="field">
+        <label>5M FVG after CHoCH?</label>
+        <select id="fvg5m">
+          <option value="yes">✅ FVG present</option>
+          <option value="no" selected>⏳ No FVG yet</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>5M delta on CHoCH</label>
+        <select id="delta">
+          <option value="strong">💪 Strong</option>
+          <option value="weak" selected>😐 Weak / neutral</option>
+          <option value="against">❌ Against</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button class="scan-btn" id="scanBtn" onclick="runScan()">Scan All Conditions</button>
+
+  <div class="score-bar" id="scoreBar" style="display:none">
+    <div class="score-top">
+      <span class="score-label">Confluence score</span>
+      <span class="score-val" id="scoreVal">0 <span style="font-size:14px;font-weight:400;color:var(--text2)">/ 4</span></span>
+    </div>
+    <div class="score-track">
+      <div class="score-fill" id="scoreFill" style="width:0%;background:var(--text2)"></div>
+    </div>
+  </div>
+
+  <div class="checks" id="checks">
+    <div class="check" id="c0">
+      <div class="check-num">1</div>
+      <div class="check-body">
+        <div class="check-label">1D + 1H direction aligned</div>
+        <div class="check-desc">Both timeframes must agree on direction</div>
+      </div>
+      <span class="check-badge badge-gray" id="cb0">Pending</span>
+    </div>
+    <div class="check" id="c1">
+      <div class="check-num">2</div>
+      <div class="check-body">
+        <div class="check-label">1H key level / FVG touched</div>
+        <div class="check-desc">Price reached the 1H entry zone</div>
+      </div>
+      <span class="check-badge badge-gray" id="cb1">Pending</span>
+    </div>
+    <div class="check" id="c2">
+      <div class="check-num">3</div>
+      <div class="check-body">
+        <div class="check-label">5M CHoCH confirmed</div>
+        <div class="check-desc">Structure breaks after level touch</div>
+      </div>
+      <span class="check-badge badge-gray" id="cb2">Pending</span>
+    </div>
+    <div class="check" id="c3">
+      <div class="check-num">4</div>
+      <div class="check-body">
+        <div class="check-label">5M FVG + delta confirms</div>
+        <div class="check-desc">Enter on 5M FVG retest after CHoCH</div>
+      </div>
+      <span class="check-badge badge-gray" id="cb3">Pending</span>
+    </div>
+  </div>
+
+  <div class="levels" id="levels" style="display:none">
+    <div class="level-card">
+      <div class="level-label">Entry zone</div>
+      <div class="level-val lv-entry" id="lvE">—</div>
+      <div class="level-sub">5M FVG retest</div>
+    </div>
+    <div class="level-card">
+      <div class="level-label">Stop loss</div>
+      <div class="level-val lv-sl" id="lvS">—</div>
+      <div class="level-sub">Above/below FVG</div>
+    </div>
+    <div class="level-card">
+      <div class="level-label">Target (TP)</div>
+      <div class="level-val lv-tp" id="lvT">—</div>
+      <div class="level-sub">Opposite liquidity</div>
+    </div>
+    <div class="level-card">
+      <div class="level-label">R:R ratio</div>
+      <div class="level-val lv-rr" id="lvR">—</div>
+      <div class="level-sub">Min 1:2 required</div>
+    </div>
+  </div>
+
+  <div class="signal" id="signal" style="display:none">
+    <div class="signal-label">Setup signal</div>
+    <div class="signal-val sig-neutral" id="sigVal">—</div>
+  </div>
+
+  <div class="ai-box loading" id="aiBox" style="display:none">
+    <div class="ai-label">AI Analysis</div>
+    <div id="aiText"><div class="dot-anim"><span></span><span></span><span></span></div></div>
+  </div>
+
+  <div class="quick-btns" id="quickBtns" style="display:none">
+    <button class="quick-btn" onclick="askAI('Give me a detailed step-by-step entry plan for this SUI setup including exact entry price, stop loss, target and how to manage the trade')">
+      <span class="quick-btn-icon">🎯</span> Get detailed entry plan
+    </button>
+    <button class="quick-btn" onclick="askAI('What conditions would invalidate my current SUI CHoCH setup? List exact price levels and candle patterns that mean I should cancel the trade')">
+      <span class="quick-btn-icon">⚠️</span> Check invalidation conditions
+    </button>
+    <button class="quick-btn" onclick="askAI('Explain the CHoCH entry technique on 5M in detail with examples — how to identify it, where exactly to enter, and where to place stop loss')">
+      <span class="quick-btn-icon">📚</span> Explain CHoCH entry in detail
+    </button>
+    <button class="quick-btn" onclick="askAI('Based on my current SUI conditions, what should I be monitoring on ATAS heatmap right now to confirm or deny this setup?')">
+      <span class="quick-btn-icon">🔥</span> What to watch on ATAS heatmap
+    </button>
+  </div>
+
+  <div class="footer">SUI Setup Monitor v3 · 1D/1H/5M CHoCH Framework<br>Save to home screen to use like an app</div>
+
+</div>
+
+<script>
+const API = 'https://api.anthropic.com/v1/messages';
+let lastConditions = {};
+
+function pct(a,b){return Math.abs((a-b)/b)*100}
+
+function getSession(){
+  const now = new Date();
+  const u = now.getUTCHours()*60 + now.getUTCMinutes();
+  if(u>=13*60 && u<=15*60) return {label:'NY+London ⚡ Best window',on:true};
+  if(u>=13*60 && u<=22*60+30) return {label:'NY session active',on:true};
+  if(u>=8*60 && u<=16*60+30) return {label:'London session active',on:true};
+  if(u>=0 && u<=8*60) return {label:'Asian session — choppy',on:false};
+  return {label:'Off-session',on:false};
+}
+
+function updateSession(){
+  const s = getSession();
+  const el = document.getElementById('sessbadge');
+  el.textContent = s.label;
+  el.className = 'session-badge ' + (s.on ? 'sess-on' : 'sess-off');
+}
+setInterval(updateSession, 60000);
+updateSession();
+
+function updateAlign(){
+  const d1 = document.getElementById('d1').value;
+  const h1 = document.getElementById('h1').value;
+  const badge = document.getElementById('alignBadge');
+  const sub = document.getElementById('alignSub');
+  if(d1==='ranging'||h1==='ranging'){
+    badge.className='badge badge-amber'; badge.textContent='Ranging';
+    sub.textContent='Wait — one TF has no clear direction';
+  } else if(d1===h1){
+    badge.className='badge badge-green'; badge.textContent='Aligned ✓';
+    sub.textContent=`Both 1D and 1H bearish — strong confluence`;
+    sub.textContent=`Both 1D and 1H ${d1} — strong confluence`;
+  } else {
+    badge.className='badge badge-red'; badge.textContent='Conflict ✗';
+    sub.textContent=`1D is ${d1} but 1H is ${h1} — no trade`;
+  }
+}
+document.getElementById('d1').addEventListener('change', updateAlign);
+document.getElementById('h1').addEventListener('change', updateAlign);
+updateAlign();
+
+function setCheck(idx, state, text){
+  const card = document.getElementById('c'+idx);
+  const badge = document.getElementById('cb'+idx);
+  card.className = 'check ' + (state==='pass'?'pass':state==='fail'?'fail':state==='warn'?'warn':'');
+  badge.className = 'check-badge ' + (state==='pass'?'badge-green':state==='fail'?'badge-red':state==='warn'?'badge-amber':'badge-gray');
+  badge.textContent = text;
+}
+
+function runScan(){
+  const btn = document.getElementById('scanBtn');
+  btn.disabled = true; btn.textContent = 'Scanning...';
+
+  const price  = parseFloat(document.getElementById('price').value);
+  const d1     = document.getElementById('d1').value;
+  const h1     = document.getElementById('h1').value;
+  const h1lvl  = parseFloat(document.getElementById('h1lvl').value);
+  const fvgT   = parseFloat(document.getElementById('fvgt').value);
+  const fvgB   = parseFloat(document.getElementById('fvgb').value);
+  const ssl    = parseFloat(document.getElementById('ssl').value);
+  const bsl    = parseFloat(document.getElementById('bsl').value);
+  const touched= document.getElementById('touched').value;
+  const choch  = document.getElementById('choch').value;
+  const fvg5m  = document.getElementById('fvg5m').value;
+  const delta  = document.getElementById('delta').value;
+  const sess   = getSession();
+  const bias   = d1;
+
+  let score = 0; const notes = [];
+
+  const aligned  = d1===h1 && d1!=='ranging';
+  const conflict = d1!==h1 && d1!=='ranging' && h1!=='ranging';
+  const ranging  = d1==='ranging' || h1==='ranging';
+
+  if(aligned){setCheck(0,'pass','Aligned ✓'); score++; notes.push(`1D+1H both ${d1}`);}
+  else if(ranging){setCheck(0,'warn','Ranging'); notes.push('One TF ranging — no direction');}
+  else{setCheck(0,'fail','Conflict ✗'); notes.push(`1D ${d1} vs 1H ${h1} — conflict`);}
+
+  const nearH1 = pct(price,h1lvl)<0.3;
+  const inFVG  = price>=fvgB && price<=fvgT;
+  const nearFVG= pct(price,fvgB)<0.3 || pct(price,fvgT)<0.3;
+  if(touched==='yes'||inFVG){setCheck(1,'pass','Touched ✓'); score++; notes.push('Price at 1H level/FVG');}
+  else if(nearH1||nearFVG){setCheck(1,'warn','Approaching'); notes.push('Price near zone — watch closely');}
+  else{setCheck(1,'fail','Not reached'); notes.push(`${pct(price,h1lvl).toFixed(2)}% away from 1H level`);}
+
+  if(choch==='confirmed'){setCheck(2,'pass','Confirmed ✓'); score++; notes.push('5M CHoCH confirmed');}
+  else if(choch==='forming'){setCheck(2,'warn','Forming...'); notes.push('CHoCH forming — wait for close');}
+  else if(choch==='failed'){setCheck(2,'fail','Failed ✗'); notes.push('CHoCH failed — setup invalid');}
+  else{setCheck(2,'fail','Waiting'); notes.push('No CHoCH yet');}
+
+  const fvgOk   = fvg5m==='yes';
+  const deltaOk = delta==='strong';
+  const deltaWk = delta==='weak';
+  if(fvgOk&&deltaOk){setCheck(3,'pass','Confirmed ✓'); score++; notes.push('5M FVG + strong delta — enter');}
+  else if(fvgOk&&deltaWk){setCheck(3,'warn','Partial'); notes.push('FVG yes, delta weak — reduce size');}
+  else if(fvgOk){setCheck(3,'fail','Delta against'); notes.push('FVG yes but delta against — skip');}
+  else{setCheck(3,'warn','No FVG yet'); notes.push('Wait for 5M FVG to form');}
+
+  const colors = ['#5555708','#D85A30','#EF9F27','#BA7517','#1D9E75'];
+  const widths = [0,25,50,75,100];
+  document.getElementById('scoreFill').style.width  = widths[score]+'%';
+  document.getElementById('scoreFill').style.background = colors[score] || '#1D9E75';
+  document.getElementById('scoreVal').innerHTML = `${score} <span style="font-size:14px;font-weight:400;color:var(--text2)">/ 4</span>`;
+  document.getElementById('scoreBar').style.display = 'block';
+
+  const entryP = bias==='bearish' ? fvgB+((fvgT-fvgB)*0.5) : fvgT-((fvgT-fvgB)*0.5);
+  const slP    = bias==='bearish' ? fvgT+0.0008 : fvgB-0.0008;
+  const tpP    = bias==='bearish' ? ssl : bsl;
+  const risk   = Math.abs(entryP-slP);
+  const reward = Math.abs(entryP-tpP);
+  const rr     = risk>0 ? (reward/risk).toFixed(1) : '—';
+  document.getElementById('lvE').textContent = entryP.toFixed(4);
+  document.getElementById('lvS').textContent = slP.toFixed(4);
+  document.getElementById('lvT').textContent = tpP.toFixed(4);
+  document.getElementById('lvR').textContent = `1 : ${rr}`;
+  document.getElementById('levels').style.display = 'grid';
+
+  const sigEl = document.getElementById('sigVal');
+  document.getElementById('signal').style.display = 'block';
+  if(score===4){
+    sigEl.textContent = bias==='bearish' ? '🔴 HIGH PROB SHORT — Enter on 5M FVG retest' : '🟢 HIGH PROB LONG — Enter on 5M FVG retest';
+    sigEl.className = 'signal-val '+(bias==='bearish'?'sig-short':'sig-long');
+  } else if(score===3&&choch==='confirmed'){
+    sigEl.textContent = '⚡ Setup valid — wait for 5M FVG to form';
+    sigEl.className = 'signal-val sig-neutral';
+  } else if(choch==='failed'){
+    sigEl.textContent = '❌ Setup invalidated — CHoCH failed';
+    sigEl.className = 'signal-val sig-neutral';
+  } else {
+    sigEl.textContent = `⏳ Developing — ${4-score} condition${4-score!==1?'s':''} remaining`;
+    sigEl.className = 'signal-val sig-neutral';
+  }
+
+  lastConditions = {price,d1,h1,h1lvl,fvgT,fvgB,ssl,bsl,touched,choch,fvg5m,delta,score,sess:sess.label,notes:notes.join('; '),bias};
+
+  document.getElementById('aiBox').style.display = 'block';
+  document.getElementById('quickBtns').style.display = 'flex';
+  document.getElementById('quickBtns').style.flexDirection = 'column';
+  document.getElementById('aiBox').className = 'ai-box loading';
+  document.getElementById('aiText').innerHTML = '<div class="dot-anim"><span></span><span></span><span></span></div>';
+
+  callAI(`You are a professional crypto futures trading mentor specialising in Smart Money Concepts and order flow. A trader is monitoring SUIUSDT on Binance Futures using a 1D/1H/5M top-down framework with CHoCH entry confirmation at 1H key levels.
+
+Current conditions:
+- 1D direction: ${d1}
+- 1H direction: ${h1}
+- Alignment: ${aligned?'ALIGNED — both '+d1:'CONFLICT/RANGING'}
+- Current price: ${price}
+- 1H key level: ${h1lvl} | 1H FVG: ${fvgB}–${fvgT}
+- Price touched 1H level: ${touched}
+- 5M CHoCH status: ${choch}
+- 5M FVG after CHoCH: ${fvg5m}
+- 5M delta on CHoCH candle: ${delta}
+- SSL: ${ssl} | BSL: ${bsl}
+- Confluence: ${score}/4
+- Session: ${sess.label}
+- Analysis: ${notes.join('; ')}
+
+Give a direct, sharp 3-4 sentence trading verdict. State: is this ready to enter now, what exactly is the trader still waiting for if not, and the single most important invalidation level. Speak like a mentor watching the chart live with them. No bullet points.`);
+
+  btn.disabled = false; btn.textContent = 'Scan All Conditions';
+}
+
+function callAI(prompt){
+  fetch(API,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+  })
+  .then(r=>r.json())
+  .then(data=>{
+    const t = data.content?.find(b=>b.type==='text')?.text || 'Analysis unavailable.';
+    document.getElementById('aiBox').className = 'ai-box';
+    document.getElementById('aiText').textContent = t;
+  })
+  .catch(()=>{
+    document.getElementById('aiBox').className = 'ai-box';
+    document.getElementById('aiText').textContent = 'AI analysis unavailable. Check your internet connection.';
+  });
+}
+
+function askAI(question){
+  document.getElementById('aiBox').className = 'ai-box loading';
+  document.getElementById('aiText').innerHTML = '<div class="dot-anim"><span></span><span></span><span></span></div>';
+  document.getElementById('aiBox').scrollIntoView({behavior:'smooth'});
+  const c = lastConditions;
+  const context = c.price ? `Context: SUIUSDT, price ${c.price}, bias ${c.bias}, CHoCH ${c.choch}, score ${c.score}/4, session: ${c.sess}. ` : '';
+  callAI(context + question);
+}
+</script>
+
+<script>
+// LIVE PRICE OVERLAY - Binance Futures API
+let livePrice = 0;
+let prevPrice = 0;
+let alertsShown = {};
+
+// Create live price banner
+const banner = document.createElement('div');
+banner.style.cssText = 'background:#13131a;border:1px solid #2a2a3a;border-radius:10px;padding:14px 16px;margin-top:16px;font-family:system-ui,sans-serif';
+banner.innerHTML = `
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+  <span style="font-size:11px;font-weight:600;color:#8888a8;letter-spacing:.05em">SUIUSDT · BINANCE FUTURES · LIVE</span>
+  <span id="liveStatus" style="font-size:11px;padding:3px 9px;border-radius:20px;background:#0d2a1f;color:#4ddb9f;font-weight:600">Connecting...</span>
+</div>
+<div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px">
+  <span id="livePrice" style="font-size:32px;font-weight:700;font-family:monospace;color:#e8e8f0">—</span>
+  <span id="liveChg" style="font-size:13px;font-weight:600;padding:3px 8px;border-radius:6px;display:none"></span>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+  <div style="background:#1a1a24;border-radius:7px;padding:8px 10px"><div style="font-size:10px;color:#8888a8;margin-bottom:3px">24H HIGH</div><div id="liveHigh" style="font-size:12px;font-weight:600;font-family:monospace">—</div></div>
+  <div style="background:#1a1a24;border-radius:7px;padding:8px 10px"><div style="font-size:10px;color:#8888a8;margin-bottom:3px">24H LOW</div><div id="liveLow" style="font-size:12px;font-weight:600;font-family:monospace">—</div></div>
+  <div style="background:#1a1a24;border-radius:7px;padding:8px 10px"><div style="font-size:10px;color:#8888a8;margin-bottom:3px">VOLUME</div><div id="liveVol" style="font-size:12px;font-weight:600;font-family:monospace">—</div></div>
+</div>
+<div style="display:flex;align-items:center;gap:6px">
+  <div style="width:6px;height:6px;border-radius:50%;background:#1D9E75;animation:pulse 1.5s infinite"></div>
+  <span style="font-size:11px;color:#8888a8">Updates every 3 seconds</span>
+  <span id="lastUpd" style="font-size:11px;color:#8888a8;margin-left:auto"></span>
+</div>
+<div id="alertBanner" style="display:none;margin-top:10px;background:#2a1f08;border:1px solid rgba(239,159,39,.3);border-radius:7px;padding:9px 12px;font-size:12px;color:#ffc55a;font-weight:500"></div>
+`;
+
+// Insert at top of app after topbar
+const app = document.querySelector('.app') || document.querySelector('.w') || document.body;
+const firstSection = app.querySelector('.section') || app.querySelector('.slabel') || app.children[1];
+if(firstSection) app.insertBefore(banner, firstSection);
+else app.prepend(banner);
+
+async function fetchLivePrice(){
+  try {
+    const r = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=SUIUSDT');
+    const d = await r.json();
+    prevPrice = livePrice;
+    livePrice = parseFloat(d.lastPrice);
+    const chg = parseFloat(d.priceChangePercent);
+    const high = parseFloat(d.highPrice);
+    const low  = parseFloat(d.lowPrice);
+    const vol  = parseFloat(d.quoteVolume);
+
+    const pEl = document.getElementById('livePrice');
+    if(pEl){
+      pEl.textContent = livePrice.toFixed(4);
+      if(prevPrice > 0){
+        pEl.style.color = livePrice > prevPrice ? '#4ddb9f' : livePrice < prevPrice ? '#ff7a4d' : '#e8e8f0';
+        setTimeout(()=>pEl.style.color='#e8e8f0', 800);
+      }
+    }
+
+    const cEl = document.getElementById('liveChg');
+    if(cEl){
+      cEl.style.display='inline';
+      cEl.textContent = (chg>=0?'+':'')+chg.toFixed(2)+'%';
+      cEl.style.background = chg>=0 ? '#0d2a1f' : '#2a1008';
+      cEl.style.color = chg>=0 ? '#4ddb9f' : '#ff7a4d';
+    }
+
+    const hEl=document.getElementById('liveHigh'); if(hEl) hEl.textContent=high.toFixed(4);
+    const lEl=document.getElementById('liveLow');  if(lEl) lEl.textContent=low.toFixed(4);
+    const vEl=document.getElementById('liveVol');  if(vEl) vEl.textContent=vol>1e9?(vol/1e9).toFixed(1)+'B':(vol/1e6).toFixed(0)+'M';
+
+    const stEl=document.getElementById('liveStatus');
+    if(stEl){stEl.textContent='🟢 Live';stEl.style.background='#0d2a1f';stEl.style.color='#4ddb9f';}
+
+    const upEl=document.getElementById('lastUpd');
+    if(upEl) upEl.textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+    // auto-fill price field
+    const pField = document.getElementById('price') || document.getElementById('currentPrice');
+    if(pField) pField.value = livePrice.toFixed(4);
+
+    // proximity alerts
+    checkProximity();
+
+  } catch(e){
+    const stEl=document.getElementById('liveStatus');
+    if(stEl){stEl.textContent='🔴 Offline';stEl.style.background='#2a1008';stEl.style.color='#ff7a4d';}
+  }
+}
+
+// ── ALERT CONFIG stored in memory ──
+let alertConfig = {
+  h1: { enabled: true, triggered: false, message: 'Price hit 1H key level — Watch for 5M CHoCH now!' },
+  fvg: { enabled: true, triggered: false, message: 'Price entered 1H FVG zone — CHoCH setup imminent!' },
+  ssl: { enabled: true, triggered: false, message: 'Price near SSL — Liquidity sweep incoming!' },
+  bsl: { enabled: true, triggered: false, message: 'Price near BSL — Liquidity sweep incoming!' }
+};
+let alertPanel = null;
+let soundEnabled = true;
+
+// ── BUILD ALERT CONFIG PANEL ──
+function buildAlertPanel(){
+  const existing = document.getElementById('alertConfigPanel');
+  if(existing){ existing.remove(); alertPanel=null; return; }
+
+  const panel = document.createElement('div');
+  panel.id = 'alertConfigPanel';
+  panel.style.cssText = 'background:#13131a;border:1px solid #2a2a3a;border-radius:10px;padding:14px 16px;margin-top:10px;font-family:system-ui,sans-serif';
+  panel.innerHTML = `
+    <div style="font-size:11px;font-weight:600;color:#8888a8;letter-spacing:.06em;text-transform:uppercase;margin-bottom:12px">Alert Settings</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:10px 12px;background:#1a1a24;border-radius:7px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:#e8e8f0">Sound alerts</div>
+        <div style="font-size:11px;color:#8888a8;margin-top:2px">Play sound when price hits level</div>
+      </div>
+      <div id="soundToggle" onclick="toggleSound()" style="width:42px;height:24px;border-radius:12px;background:#1D9E75;cursor:pointer;position:relative;transition:background .2s">
+        <div id="soundKnob" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:21px;transition:left .2s"></div>
+      </div>
+    </div>
+
+    ${buildAlertRow('h1',  '1H Key Level hit',     'Most important — CHoCH watch starts')}
+    ${buildAlertRow('fvg', '1H FVG zone entered',  'Price inside your fair value gap')}
+    ${buildAlertRow('ssl', 'SSL approached',        'Sell side liquidity sweep possible')}
+    ${buildAlertRow('bsl', 'BSL approached',        'Buy side liquidity sweep possible')}
+
+    <div style="margin-top:14px">
+      <div style="font-size:11px;color:#8888a8;margin-bottom:8px;font-weight:500">Custom alert messages</div>
+      ${buildMsgInput('h1',  '1H Key Level')}
+      ${buildMsgInput('fvg', 'FVG Zone')}
+      ${buildMsgInput('ssl', 'SSL Level')}
+      ${buildMsgInput('bsl', 'BSL Level')}
+    </div>
+
+    <div style="margin-top:14px;padding:10px 12px;background:#1a1830;border:1px solid rgba(127,119,221,.2);border-radius:7px;font-size:12px;color:#a8a2ff;line-height:1.6">
+      💡 <b>Tip:</b> Allow notifications when browser asks — alerts fire even when you are on another app. On iPhone: Settings → Safari → Allow Notifications.
+    </div>
+  `;
+  alertPanel = panel;
+  // insert after the live banner
+  const banner = document.querySelector('#alertBanner') ? document.querySelector('#alertBanner').closest('div[style*="13131a"]') : null;
+  if(banner && banner.parentNode) banner.parentNode.insertBefore(panel, banner.nextSibling);
+  else { const app = document.querySelector('.app')||document.querySelector('.w')||document.body; app.appendChild(panel); }
+}
+
+function buildAlertRow(key, label, desc){
+  const cfg = alertConfig[key];
+  return `<div style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#1a1a24;border-radius:7px;margin-bottom:6px">
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:600;color:#e8e8f0">${label}</div>
+      <div style="font-size:11px;color:#8888a8;margin-top:2px">${desc}</div>
+    </div>
+    <div id="tog_${key}" onclick="toggleAlert('${key}')" style="width:42px;height:24px;border-radius:12px;background:${cfg.enabled?'#1D9E75':'#2a2a3a'};cursor:pointer;position:relative;transition:background .2s;flex-shrink:0">
+      <div id="knob_${key}" style="width:18px;height:18px;border-radius:50%;background:#fff;position:absolute;top:3px;left:${cfg.enabled?'21px':'3px'};transition:left .2s"></div>
+    </div>
+  </div>`;
+}
+
+function buildMsgInput(key, label){
+  return `<div style="margin-bottom:6px">
+    <div style="font-size:11px;color:#8888a8;margin-bottom:3px">${label} message</div>
+    <input id="msg_${key}" type="text" value="${alertConfig[key].message}"
+      onchange="alertConfig['${key}'].message=this.value"
+      style="width:100%;background:#1a1a24;border:1px solid #2a2a3a;border-radius:6px;color:#e8e8f0;font-size:12px;padding:7px 10px;outline:none"/>
+  </div>`;
+}
+
+function toggleAlert(key){
+  alertConfig[key].enabled = !alertConfig[key].enabled;
+  alertConfig[key].triggered = false;
+  const tog = document.getElementById('tog_'+key);
+  const knob = document.getElementById('knob_'+key);
+  if(tog) tog.style.background = alertConfig[key].enabled ? '#1D9E75' : '#2a2a3a';
+  if(knob) knob.style.left = alertConfig[key].enabled ? '21px' : '3px';
+}
+
+function toggleSound(){
+  soundEnabled = !soundEnabled;
+  const tog = document.getElementById('soundToggle');
+  const knob = document.getElementById('soundKnob');
+  if(tog) tog.style.background = soundEnabled ? '#1D9E75' : '#2a2a3a';
+  if(knob) knob.style.left = soundEnabled ? '21px' : '3px';
+}
+
+function playAlertSound(){
+  if(!soundEnabled) return;
+  try {
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    // Two-tone alert beep
+    [880, 1100].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0, ctx.currentTime + i*0.15);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + i*0.15 + 0.05);
+      gain.gain.linearRampToValueAtTime(0, ctx.currentTime + i*0.15 + 0.25);
+      osc.start(ctx.currentTime + i*0.15);
+      osc.stop(ctx.currentTime + i*0.15 + 0.3);
+    });
+  } catch(e){}
+}
+
+function fireAlert(key, title, body, color, bg){
+  if(!alertConfig[key].enabled || alertConfig[key].triggered) return;
+  alertConfig[key].triggered = true;
+  setTimeout(()=>alertConfig[key].triggered=false, 90000); // re-arm after 90s
+
+  const msg = alertConfig[key].message || body;
+
+  // on-screen banner
+  const alertEl = document.getElementById('alertBanner');
+  if(alertEl){
+    alertEl.style.display='block';
+    alertEl.style.background=bg; alertEl.style.color=color;
+    alertEl.style.border='1px solid '+color+'55';
+    alertEl.innerHTML = '<b>'+title+'</b><br>'+msg+'<br><span style="font-size:11px;opacity:.7">Price: '+livePrice.toFixed(4)+' · '+new Date().toLocaleTimeString('en-IN')+'</span>';
+  }
+
+  // sound
+  playAlertSound();
+
+  // browser push notification
+  if(typeof Notification!='undefined' && Notification.permission==='granted'){
+    new Notification('SUI Monitor — '+title, { body: msg+' Price: '+livePrice.toFixed(4), icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="16" fill="%231D9E75"/><text x="16" y="21" text-anchor="middle" font-size="16" fill="white">S</text></svg>' });
+  }
+
+  // vibrate on mobile
+  if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+}
+
+// ── ADD ALERT BUTTON TO BANNER ──
+function injectAlertBtn(){
+  const banner = document.querySelector('div[style*="13131a"]');
+  if(!banner || document.getElementById('alertSettingsBtn')) return;
+  const btn = document.createElement('button');
+  btn.id = 'alertSettingsBtn';
+  btn.textContent = '🔔 Alert Settings';
+  btn.style.cssText = 'margin-top:10px;width:100%;padding:9px;background:#1a1a24;border:1px solid #2a2a3a;border-radius:7px;color:#e8e8f0;font-size:13px;font-weight:500;cursor:pointer;transition:background .15s';
+  btn.onmouseover = ()=>btn.style.background='#22222f';
+  btn.onmouseout  = ()=>btn.style.background='#1a1a24';
+  btn.onclick = buildAlertPanel;
+  banner.appendChild(btn);
+}
+
+function checkProximity(){
+  const h1Field  = document.getElementById('h1lvl') || document.getElementById('h1Level');
+  const fvgTField= document.getElementById('fvgt');
+  const fvgBField= document.getElementById('fvgb');
+  const sslField = document.getElementById('ssl')  || document.getElementById('sslLevel');
+  const bslField = document.getElementById('bsl');
+  if(!h1Field||!livePrice) return;
+
+  const h1lvl = parseFloat(h1Field.value);
+  const fvgT  = fvgTField ? parseFloat(fvgTField.value) : 0;
+  const fvgB  = fvgBField ? parseFloat(fvgBField.value) : 0;
+  const ssl   = sslField  ? parseFloat(sslField.value)  : 0;
+  const bsl   = bslField  ? parseFloat(bslField.value)  : 0;
+
+  const nearH1  = Math.abs(livePrice-h1lvl)/h1lvl < 0.003;
+  const inFVG   = fvgT && fvgB && livePrice>=fvgB && livePrice<=fvgT;
+  const nearFVG = fvgT && fvgB && (Math.abs(livePrice-fvgT)/fvgT<0.002 || Math.abs(livePrice-fvgB)/fvgB<0.002);
+  const nearSSL = ssl && Math.abs(livePrice-ssl)/ssl < 0.002;
+  const nearBSL = bsl && Math.abs(livePrice-bsl)/bsl < 0.002;
+
+  // fire alerts in priority order
+  if(nearH1)        fireAlert('h1',  '1H Key Level Hit',   'Watch for 5M CHoCH now!',         '#ffc55a', '#2a1f08');
+  else if(inFVG||nearFVG) fireAlert('fvg','1H FVG Zone Entered','Price inside your FVG zone',  '#a8a2ff', '#1a1830');
+  else if(nearSSL)  fireAlert('ssl', 'SSL Approached',      'Liquidity sweep incoming!',        '#ff7a4d', '#2a1008');
+  else if(nearBSL)  fireAlert('bsl', 'BSL Approached',      'Liquidity sweep incoming!',        '#4ddb9f', '#0d2a1f');
+
+  // clear banner when price moves away from all zones
+  if(!nearH1&&!inFVG&&!nearFVG&&!nearSSL&&!nearBSL){
+    const alertEl=document.getElementById('alertBanner');
+    if(alertEl) alertEl.style.display='none';
+    // re-arm triggers when price moves away
+    ['h1','fvg','ssl','bsl'].forEach(k=>{ if(alertConfig[k].triggered) alertConfig[k].triggered=false; });
+  }
+}
+
+if(typeof Notification!='undefined' && Notification.permission==='default') Notification.requestPermission();
+fetchLivePrice();
+setInterval(fetchLivePrice, 3000);
+setTimeout(injectAlertBtn, 500);
+</script>
+</body>
+</html>
